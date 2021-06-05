@@ -3,7 +3,7 @@ const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 mongoose.set('useCreateIndex', true);
-
+const Task = require('../model/task')
 const { Schema } = mongoose;
 
 const userSchema = new Schema({
@@ -41,7 +41,10 @@ const userSchema = new Schema({
 
 
 
-});
+},
+{timestamps:true}
+
+);
 
 userSchema.virtual('tasks',{
     ref:'Task',
@@ -100,7 +103,15 @@ if(user.isModified('password')){
 next()
 })
 
+userSchema.pre('remove',async function(next){
+    const user = this;
+     
+Task.deleteMany({owner:user._id})
 
+
+
+    next();
+})
 
 
 

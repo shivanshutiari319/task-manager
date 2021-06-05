@@ -5,11 +5,27 @@ mongoose.set('useCreateIndex', true);
 const Task= require('../model/task');
 const auth= require('../middleware/auth')
 router.get('/task',auth,async(req,res)=>{
+const match = {}
+if(req.query.completed){
+    match.completed=req.query.completed==='true'
+}
+
+
     try {
-        const tp=await Task.find({owner:req.user._id});
-        res.send(tp);
+      await req.user.populate({
+            path:'tasks',
+            match,
+            options:{
+                limit:parseInt(req.query.limit),
+                skip:parseInt(req.query.skip),
+                sort:{
+                    createdAt:1
+                }
+            }
+        })
+        res.send(req.user.tasks);
     } catch (error) {
-        res.send(error)
+        res.send(error) 
     }
   
 })
@@ -67,6 +83,7 @@ res.send(find);
 router.delete('/task/:id',auth,async( req,res)=>{
     try {
         const find = await Task.findOneAndDelete({_id:req.params.id,owner:req.user._id})
+        // const task = await req.user.remove()
 if(!find){
     res.send('task is not found')
 

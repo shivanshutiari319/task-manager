@@ -9,8 +9,8 @@ const taskSchema = new Schema({
      unique:true
 
  },
- title:{
-     type:String
+ completed:{
+     type:Boolean
 
      
  },
@@ -20,7 +20,14 @@ const taskSchema = new Schema({
      ref:'user'
  }
 
+},
+{
+    timestamps:true
+
 });
+
+
+
 
 
 const Task = mongoose.model('task', taskSchema);
