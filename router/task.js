@@ -3,11 +3,18 @@ const router=express.Router()
 const mongoose = require('mongoose')
 mongoose.set('useCreateIndex', true);
 const Task= require('../model/task');
+// const multer=require('multer')
+// var upload = multer({ dest: 'images' })
 const auth= require('../middleware/auth')
 router.get('/task',auth,async(req,res)=>{
 const match = {}
+const sort = {}
 if(req.query.completed){
     match.completed=req.query.completed==='true'
+}
+if (req.query.sortBy) {
+    const parts = req.query.sortBy.split(':')
+    sort[parts[0]] = parts[1] === 'desc' ? -1 : 1
 }
 
 
@@ -18,9 +25,7 @@ if(req.query.completed){
             options:{
                 limit:parseInt(req.query.limit),
                 skip:parseInt(req.query.skip),
-                sort:{
-                    createdAt:1
-                }
+                sort
             }
         })
         res.send(req.user.tasks);

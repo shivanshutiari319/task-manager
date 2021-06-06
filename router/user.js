@@ -3,6 +3,7 @@ const router=express.Router()
 const auth = require('../middleware/auth')
 const bcrypt = require('bcryptjs')
 const mongoose = require('mongoose')
+const multer = require('multer')
 mongoose.set('useFindAndModify',false)
 const User= require('../model/user');
 mongoose.set('useCreateIndex', true);
@@ -11,7 +12,60 @@ router.get('/users/me',auth,async(req,res)=>{
    res.send(req.user)
     
 })
+const upload = multer({
+   
+    limits:{
+        fileSize:1000000
+    },
+    fileFilter(req,file,cb){
+  if(!file.originalname.match(/\.(jpg|jpeg|png)$/)){
+            return cb(new Error('plz upload file'))
+}
+            cb(undefined,true)
+    }
+   
+})
+router.post('/users/me/avatar',auth,upload.single('avatar'),async(req,res)=>{
+    req.user.avatar= req.file.buffer
+    await req.user.save()
 
+    try {
+        res.send();
+    } catch (error) {
+        res.send(error)
+    }
+   
+},(error,req,res,next)=>{
+if(error)res.send({error:error.message})
+
+
+})
+
+router.get('/users/:id/avatar',async(req,res)=>{
+
+try {
+    const user= await User.findById(req.params.id);
+    if(!user|| !user.avatar){
+        throw new Error()
+    }
+    res.set('Content-Type','image/jpg')
+    res.send(user.avatar)
+    
+} catch (error) {
+    
+}
+
+
+})
+
+router.delete('/users/me/avatar',auth,async(req,res)=>{
+
+req.user.avatar=undefined;
+ await req.user.save()
+ res.send()
+
+
+})
 
 
 router.post('/users/logout',auth,async(req,res)=>{
